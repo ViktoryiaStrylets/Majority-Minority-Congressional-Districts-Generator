@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<title>Maximum Majority-Minority Congressional Redistricting Generation</title>	    
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+	<!--  favicon -->
+	<link href="[YOUR_FAVICON_PATH]/favicon.ico" rel="icon" type="image/x-icon" />
+	
+   <!-- Bootstrap CSS -->
+   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" />
+   
+   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+   
+   <!-- Import jQuery -->
+   <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.4.1.min.js"></script>
+   
+   <!-- plotly-latest.min.jss-->
+   <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+   
+   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ==" crossorigin="anonymous"/>
+   
+	<!--  Import Leaflet -->
+	<script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js" integrity="sha512-GffPMF3RvMeYyc1LWMHtK8EbPv0iNZ8/oTtHPx9/cc2ILxQ+u905qIwdpULaqDkyBKgOaB57QTMg7ztg8Jm2Og==" crossorigin="anonymous"></script>
+   
+   	<!--  Import STOMP -->
+    <script src="/webjars/sockjs-client/sockjs.min.js"></script>
+    <script src="/webjars/stomp-websocket/stomp.min.js"></script>
+    
+	<link rel="stylesheet" href="/css/leaflet.css"/>	
+	<link rel="stylesheet" href="/css/home.css"/>
+	<link rel="stylesheet" href="/css/slider.css"/>
+
+</head>
+<body>
+
+	<!-- Top-level Navbar -->
+	<nav id="mmmcdg-navbar" class="navbar navbar-expand-lg navbar-dark bg-primary">
+            <a class="navbar-brand" href="#">Maximum Majority-Minority Congressional Redistricting Generation</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarColor01" aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
+            	<span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse right" id="navbarColor01">
+            	<ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                  <a id="home-button" class="nav-link ignore-bg" href="home" style="font-weight: bold;">Home <span class="sr-only">(current)</span></a>
+                </li>
+                <li class="nav-item">
+                  <a id="about-button" class="nav-link ignore-bg" href="about">About</a>
+                </li>
+              	</ul>
+              <div class="dropdown">
+              <button class="btn btn-secondary dropdown-toggle" type="button" id="election-select-menu"  data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Select Election Data</button>
+                   <div class="dropdown-menu" aria-labelledby="dropdownMenu1">
+                       <a id="pres-2016" class="dropdown-item" href="#!">2016 Presidential Election</a>
+	                   <a id="congress-2016" class="dropdown-item" href="#!">2016 Congressional Election</a>
+	                   <a id="congress-2018" class="dropdown-item" href="#!">2018 Congressional Election</a>
+                   </div>
+              </div>
+              <div class="dropdown">
+              <button class="btn btn-secondary dropdown-toggle" type="button" id="state-select-menu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">State View Select</button>
+                   <div class="dropdown-menu" aria-labelledby="dropdownMenu1">
+	                   <a id="full" class="dropdown-item" href="#!">Full USA Map</a>
+	                   <a id="pennsylvania" class="dropdown-item" href="#!">Pennsylvania</a>
+	                   <a id="california" class="dropdown-item" href="#!">California</a>
+                   </div>
+              </div>
+           </div>
+     </nav>
+     
+	<!--  New UI -->
+	<div class="container-fluid" id=new-container>
+		<!-- A fluid container that uses the full width -->
+				<!-- MAP SELECTION VIEW AND BUTTONS -->
+		<div class="row">
+			<div class="col-md-7">
+				<h4 id="map-view-text" style="text-decoration:underline">Map View</h4> 
+				<h4 id="current-map-view-text" style="font-weight:bold">Full USA Map</h4>
+		</div>
+			 
+			 <div id="main-menu-col" class="col-md-5">
+			 	<h4 id="main-menu-text" style="text-decoration:underline">Main Menu</h4>
+			 	
+				<center><button id="district-view-toggle" class="btn btn-rounded waves-effect waves-light">Show Original Districts</button></center>
+			 		<!-- <button id="full" class="btn blue-gradient btn-rounded waves-effect waves-light">FULL MAP</button>  -->
+					<!-- <button id="california" class="btn blue-gradient btn-rounded waves-effect waves-light">CALIFORNIA</button>  -->
+					<!-- <button id="penn" class="btn blue-gradient btn-rounded waves-effect waves-light">PENNSYLVANIA</button>  -->
+			 </div>
+		</div>
+	</div>
+	
+	<div class="row">
+	<!----------------------------------------------------------------------------------------------------------------------->
+	<!--------------------------------------------------- LEAFLET ----------------------------------------------------------->
+	<!----------------------------------------------------------------------------------------------------------------------->
+        <div class="col-md-7">
+           <!-- CONTAINER FOR LEAFLET MAP -->
+			<div id="map-container" class="container-fluid">
+
+				 <div class="row">
+				 <!-- Leaflet Map Div -->
+					<div id="leaflet-map">
+					</div>
+					<script type="text/javascript">
+						$(function() {
+							$("#leaflet-map").load("leaflet", function() {
+								$(this).trigger("pagecreate");
+							});
+						});
+					</script>
+				</div>
+			</div>            
+			<!-- END OF CONTAINER FOR LEAFLET MAP -->
+		</div> 	<!-- END OF col-md-7 -->
+	<!----------------------------------------------------------------------------------------------------------------------->
+	<!------------------------------------------------ END OF LEAFLET ------------------------------------------------------->
+	<!----------------------------------------------------------------------------------------------------------------------->
+
+		<!-- System Controls Container -->
+		<div id="sys-controls-col" class="col-md-5">
+<div id="phase-inputs" class="container-fluid">
+    <h4 id="controls-text" class="text-center">System Controls</h4> 
+	<div class="row">
+		<div class="col-md-12">
+			<div class="tabbable" id="tabs-99982">
+				<ul class="nav nav-tabs">
+					<li class="nav-item">
+						<a class="nav-link active show" href="#tab4" data-toggle="tab" id="system-controls-tab">System Controls</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="#tab5" data-toggle="tab" id="voting-data-tab">Voting Data</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="#tab6" data-toggle="tab" id="demographic-data-tab">Demographic Data</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="#tab7" data-toggle="tab" id="data-analysis-tab">Data Analysis</a>
+					</li>
+				</ul>
+			</div>
+			<div class="tabbable" id="phase-tabs">
+				<ul class="nav nav-tabs">
+					<li class="nav-item">
+						<a class="nav-link active" href="#tab1" data-toggle="tab" id="phase0-tab">Demographic Bloc Analysis</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="#tab2" data-toggle="tab" id="phase1-tab">Graph Partitioning</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="#tab3" data-toggle="tab" id="phase2-tab">Simulated Annealing</a>
+					</li>
+				</ul>
+			</div>
+			<div class="tab-content">
+				<div class="tab-pane active" id="sys-controls-content">
+	<!----------------------------------------------------------------------------------------------------------------------->
+	<!----------------------------------------------- END OF SYSTEM CONTROLS ------------------------------------------------>
+	<!----------------------------------------------------------------------------------------------------------------------->
+	<!----------------------------------------------------------------------------------------------------------------------->
+	<!------------------------------------------------------ PHASE 0 -------------------------------------------------------->
+	<!----------------------------------------------------------------------------------------------------------------------->
+				<div class="tab-content">
+					<div class="tab-pane active" id="phase0-content">
+						<div class="row">
+							<div class="col-md-12">
+							<br/>
+							<p><span class="badge badge-primary">Demographic Bloc Percentage</span></p>
+							<p>Value:  <output id="phase0-dem-bloc-value">15</output></p>
+								<div class="d-flex justify-content-center my-4">
+								  <span id="slider-text" class="font-weight-bold indigo-text mr-2 mt-1">0</span>
+								  <form class="range-field w-50">
+								    <input  id="phase0-demographic-bloc-measure" class="slider" type="range"  min="0" max="100">
+								  </form>
+								  <script type="text/javascript">
+								  	var phase0DemSlider = document.getElementById("phase0-demographic-bloc-measure");
+								  	var phase0DemOutput = document.getElementById("phase0-dem-bloc-value");
+								  	phase0DemOutput.innerHTML = phase0DemSlider.value;
+								  	phase0DemSlider.oninput=function(){
+								  		phase0DemOutput.innerHTML=this.value;
+								  	}
+								  </script>
+								  <span id="slider-text" class="font-weight-bold indigo-text ml-2 mt-1">100</span>
+								</div>
+							
+							<p><span class="badge badge-primary">Vote Bloc Percentage </span></p>
+							<p>Value:  <span id="phase0-voting-bloc-value">0</span></p>
+									<div class="d-flex justify-content-center my-4">
+									  <span id="slider-text" class="font-weight-bold indigo-text mr-2 mt-1">0</span>
+									  <form class="range-field w-50">
+									    <input class="slider" type="range" value="0" min="0" max="100" id="phase0-vote-bloc-measure">
+									  </form>
+										<script type="text/javascript">
+										  	var phase0VoteSlider = document.getElementById("phase0-vote-bloc-measure");
+										  	var phase0VoteOutput = document.getElementById("phase0-voting-bloc-value");
+										  	phase0VoteOutput.innerHTML = phase0VoteSlider.value;
+										  	phase0VoteSlider.oninput=function(){
+										  	phase0VoteOutput.innerHTML=this.value;
+										  	}
+								  		</script>
+									  <span id="slider-text" class="font-weight-bold indigo-text ml-2 mt-1">100</span>
+									</div>
+							
+	<!----------------------------------------------------------------------------------------------------------------------->
+	<!------------------------------------------------- Run Phase 0 --------------------------------------------------------->
+	<!----------------------------------------------------------------------------------------------------------------------->
+	
+							<div class="row">
+								<div class="col-md-12">
+									<input type="hidden" value="0" id="phase0-is-running"/>
+										<button type="button" class="btn btn-success btn-block" id="phase0-run">Run</button> 
+								</div>
+							</div>
+				
+							</div>
+						</div>
+					</div>
+	<!----------------------------------------------------------------------------------------------------------------------->
+	<!--------------------------------------------------- END OF PHASE 0 ---------------------------------------------------->
+	<!----------------------------------------------------------------------------------------------------------------------->
+	
+	<!----------------------------------------------------------------------------------------------------------------------->
+	<!------------------------------------------------------ PHASE 1 -------------------------------------------------------->
+	<!----------------------------------------------------------------------------------------------------------------------->
+					<br/>
+					<div class="tab-pane" id="phase1-content">
+						<div class="row">
+							<div class="col-md-8">
+							<p><span class="badge badge-primary">Demographic Bloc Percentage</span></p>
+							<p>Value: <span id="phase1-dem-bloc-value">0</span></p>
+									<div class="d-flex justify-content-center my-4">
+									  <span id="slider-text" class="font-weight-bold indigo-text mr-2 mt-1">0</span>
+									  <form class="range-field w-25">
+									    <input class="slider" type="range" value="0" min="0" max="100" id="phase1-demographic-bloc-measure"/>
+									  </form>
+
+								  <script type="text/javascript">
+								  	var phase1DemSlider = document.getElementById("phase1-demographic-bloc-measure");
+								  	var phase1DemOutput = document.getElementById("phase1-dem-bloc-value");
+								  	phase1DemOutput.innerHTML = phase1DemSlider.value;
+								  	phase1DemSlider.oninput=function(){
+								  		phase1DemOutput.innerHTML=this.value;
+								  	}
+								  </script>
+
+									  <span id="slider-text" class="font-weight-bold indigo-text ml-2 mt-1">100</span>
+									</div>
+							<p><span class="badge badge-primary">Vote Bloc Percentage</span></p>
+							<p> Value: <span id="phase1-voting-bloc-value">0</span></p>
+									<div class="d-flex justify-content-center my-4">
+									  <span id="slider-text" class="font-weight-bold indigo-text mr-2 mt-1">0</span>
+									  <form class="range-field w-25">
+									    <input class="slider" type="range" value="0" min="0" max="100" id="phase1-vote-bloc-measure"/>
+									  </form>
+								  <script type="text/javascript">
+								  	var phase1VoteSlider = document.getElementById("phase1-vote-bloc-measure");
+								  	var phase1VoteOutput = document.getElementById("phase1-voting-bloc-value");
+								  	phase1VoteOutput.innerHTML = phase1VoteSlider.value;
+								  	phase1VoteSlider.oninput=function(){
+								  		phase1VoteOutput.innerHTML=this.value;
+								  	}
+								  </script>
+									  <span id="slider-text" class="font-weight-bold indigo-text ml-2 mt-1">100</span>
+									</div>
+							</div>
+							<div class="col-md-4">
+							<p><span class="badge badge-primary">Demographic Grouping</span></p>
+								 <div class="checkbox">
+								  <label class="checkbox-label" style="font-weight: bold;"><input type="checkbox" value="0" id="phase1-asian"> Asian</label>
+								</div>
+								<div class="checkbox">
+								  <label class="checkbox-label" style="font-weight: bold;"><input type="checkbox" value="0" id="phase1-african"> African American</label>
+								</div>
+								<div class="checkbox">
+								  <label class="checkbox-label" style="font-weight: bold;"><input type="checkbox" value="0" id="phase1-hispanic"> Hispanic</label>
+								</div>
+								<div class="checkbox">
+								  <label class="checkbox-label" style="font-weight: bold;"><input type="checkbox" value="0" id="phase1-white"> White</label>
+								</div> 
+								<div class="checkbox">
+								  <label class="checkbox-label" style="font-weight: bold;"><input type="checkbox" value="0" id="phase1-native"> Native American</label>
+								</div> 
+								<div class="checkbox">
+								  <label class="checkbox-label" style="font-weight: bold;"><input type="checkbox" value="0" id="phase1-hawiian"> Native Hawaiian</label>
+								</div> 
+							</div>
+							<div class="col-md-4">
+								</br>
+								<p><span class="badge badge-primary">Desired Districts</span></p>
+									<input id="numDistrictsInput" type="text" class="form-control" placeholder="Enter Number of Desired Districts">
+								</br>
+							</div>
+						</div>
+	<!----------------------------------------------------------------------------------------------------------------------->
+	<!------------------------------------------------- Run Phase 1 --------------------------------------------------------->
+	<!----------------------------------------------------------------------------------------------------------------------->
+						
+						<div class="row">
+									<div class="col-md-12">
+										<input type="hidden" value="0" id="phase1-is-running"/>
+											<button type="button" class="btn btn-success btn-block" id="phase1-run">Run</button>
+									</div>
+						</div>
+					</div>
+	<!----------------------------------------------------------------------------------------------------------------------->
+	<!------------------------------------------------- END OF PHASE 1 ------------------------------------------------------>
+	<!----------------------------------------------------------------------------------------------------------------------->
+	
+	<!----------------------------------------------------------------------------------------------------------------------->
+	<!------------------------------------------------------ PHASE 2 -------------------------------------------------------->
+	<!----------------------------------------------------------------------------------------------------------------------->
+					<div class="tab-pane" id="phase2-content">
+
+						<div class="row">
+								<div class="col-md-6">
+									<h5 id="measures-text">Political Fairness Measures</h5>
+									<p><span class="badge badge-primary">Efficiency Gap</span></p>
+									<p>Value: <span id="phase2-political-fairness-value">0</span></p>
+									<div class="d-flex justify-content-center my-4">
+									  <span id="slider-text" class="font-weight-bold indigo-text mr-2 mt-1">0</span>
+									  <form class="range-field w-25">
+									    <input class="slider" type="range" value="0" min="0" max="100" id="phase2-efficiency-gap-measure"/>
+									  </form>
+									  <script type="text/javascript">
+									  	var phase2EfficiencySlider = document.getElementById("phase2-efficiency-gap-measure");
+									  	var phase2EfficiencyOutput = document.getElementById("phase2-political-fairness-value");
+									  	phase2EfficiencyOutput.innerHTML = phase2EfficiencySlider.value;
+									  	phase2EfficiencySlider.oninput=function(){
+									  		phase2EfficiencyOutput.innerHTML=this.value;
+									  	}
+									  </script>
+									  <span id="slider-text" class="font-weight-bold indigo-text ml-2 mt-1">100</span>
+									</div>
+									<p><span class="badge badge-primary">Lopsided Margins</span></p>
+									<p>Value: <span id="phase2-lopsided-margins-value">0</span></p>
+									<div class="d-flex justify-content-center my-4">
+									  <span id="slider-text" class="font-weight-bold indigo-text mr-2 mt-1">0</span>
+									  <form class="range-field w-25">
+									    <input class="slider" type="range" value="0" min="0" max="100" id="phase2-lopsided-margins-measure"/>
+									  </form>
+									  <script type="text/javascript">
+									  	var phase2LopsidedSlider = document.getElementById("phase2-lopsided-margins-measure");
+									  	var phase2LopsidedOutput = document.getElementById("phase2-lopsided-margins-value");
+									  	phase2LopsidedOutput.innerHTML = phase2LopsidedSlider.value;
+									  	phase2LopsidedSlider.oninput=function(){
+									  		phase2LopsidedOutput.innerHTML=this.value;
+									  	}
+									  </script>
+									  <span id="slider-text" class="font-weight-bold indigo-text ml-2 mt-1">100</span>
+									</div>
+									<p><span class="badge badge-primary">Mean Median Difference</span></p>
+									<p>Value: <span id="phase2-mean-median-difference-value">0</span></p>
+									<div class="d-flex justify-content-center my-4">
+									  <span id="slider-text" class="font-weight-bold indigo-text mr-2 mt-1">0</span>
+									  <form class="range-field w-25">
+									    <input class="slider" type="range" value="0" min="0" max="100" id="phase2-mean-median-difference-measure"/>
+									  </form>
+									  <script type="text/javascript">
+									  	var phase2MeanMedianSlider = document.getElementById("phase2-mean-median-difference-measure");
+									  	var phase2MeanMedianOutput = document.getElementById("phase2-mean-median-difference-value");
+									  	phase2MeanMedianOutput.innerHTML = phase2MeanMedianSlider.value;
+									  	phase2MeanMedianSlider.oninput=function(){
+									  		phase2MeanMedianOutput.innerHTML=this.value;
+									  	}
+									  </script>
+									  <span id="slider-text" class="font-weight-bold indigo-text ml-2 mt-1">100</span>
+									</div>		
+								</div>
+																
+								<div class="col-md-6">
+									<h5 id="measures-text">Compactness Measures</h5>
+									<p><span class="badge badge-primary">Graph Compactness</span></p>
+									<p>Value: <span id="phase2-graph-compactness-value">0</span> </p>
+									<div class="d-flex justify-content-center my-4">
+									  <span id="slider-text" class="font-weight-bold indigo-text mr-2 mt-1">0</span>
+									  <form class="range-field w-25">
+									    <input class="slider" type="range" value="0" min="0" max="100" id="phase2-compactness-measure"/>
+									  </form>
+									  <script type="text/javascript">
+									  	var phase2CompactnessSlider = document.getElementById("phase2-compactness-measure");
+									  	var phase2CompactnessOutput = document.getElementById("phase2-graph-compactness-value");
+									  	phase2CompactnessOutput.innerHTML = phase2CompactnessSlider.value;
+									  	phase2CompactnessSlider.oninput=function(){
+									  		phase2CompactnessOutput.innerHTML=this.value;
+									  	}
+									  </script>
+									  <span id="slider-text" class="font-weight-bold indigo-text ml-2 mt-1">100</span>
+									</div>
+									<p><span class="badge badge-primary">Polsby-Popper</span></p>
+									<p>Value: <span id="phase2-polsby-popper-value">0</span> </p>
+									<div class="d-flex justify-content-center my-4">
+									  <span id="slider-text" class="font-weight-bold indigo-text mr-2 mt-1">0</span>
+									  <form class="range-field w-25">
+									    <input class="slider" type="range" value="0" min="0" max="100" id="phase2-polsby-popper-measure"/>
+									  </form>
+									  <script type="text/javascript">
+									  	var phase2PopperSlider = document.getElementById("phase2-polsby-popper-measure");
+									  	var phase2PopperOutput = document.getElementById("phase2-polsby-popper-value");
+									  	phase2PopperOutput.innerHTML = phase2PopperSlider.value;
+									  	phase2PopperSlider.oninput=function(){
+									  		phase2PopperOutput.innerHTML=this.value;
+									  	}
+									  </script>
+									  <span id="slider-text" class="font-weight-bold indigo-text ml-2 mt-1">100</span>
+									</div>
+									<p><span class="badge badge-primary">Schwartzberg</span></p>
+									<p>Value: <span id="phase2-schwartzberg-value">0</span> </p>
+									<div class="d-flex justify-content-center my-4">
+									  <span id="slider-text" class="font-weight-bold indigo-text mr-2 mt-1">0</span>
+									  <form class="range-field w-25">
+									    <input class="slider" type="range" value="0" min="0" max="100" id="phase2-schwartzberg-measure"/>
+									  </form>
+									  <script type="text/javascript">
+									  	var phase2SchwartzburgSlider = document.getElementById("phase2-schwartzberg-measure");
+									  	var phase2SchwartzburgOutput = document.getElementById("phase2-schwartzberg-value");
+									  	phase2SchwartzburgOutput.innerHTML = phase2SchwartzburgSlider.value;
+									  	phase2SchwartzburgSlider.oninput=function(){
+									  		phase2SchwartzburgOutput.innerHTML=this.value;
+									  	}
+									  </script>
+									  <span id="slider-text" class="font-weight-bold indigo-text ml-2 mt-1">100</span>
+									</div>
+								</div>	
+
+								<div class="col-md-12">
+									<h5 id="measures-text">Population Equality Measure</h5>
+									<p><span class="badge badge-primary">Population Percent Difference Measure</span></p>
+									<p> Value: <span id="phase2-population-difference-value">0</span> </p>
+									<div class="d-flex justify-content-center my-4">
+									  <span id="slider-text" class="font-weight-bold indigo-text mr-2 mt-1">0</span>
+									  <form class="range-field">
+									    <input class="slider" type="range" value="0" min="0" max="100" id="phase2-pop-measure"/>
+									  </form>
+									  <script type="text/javascript">
+									  	var phase2EqualitySlider = document.getElementById("phase2-pop-measure");
+									  	var phase2EqualityOutput = document.getElementById("phase2-population-difference-value");
+									  	phase2EqualityOutput.innerHTML = phase2EqualitySlider.value;
+									  	phase2EqualitySlider.oninput=function(){
+									  		phase2EqualityOutput.innerHTML=this.value;
+									  	}
+									  </script>
+									  <span id="slider-text" class="font-weight-bold indigo-text ml-2 mt-1">100</span>
+									</div>	
+								</div>
+	<!----------------------------------------------------------------------------------------------------------------------->
+	<!------------------------------------------------- Run Phase 2 --------------------------------------------------------->
+	<!----------------------------------------------------------------------------------------------------------------------->
+						
+	
+						<div class="col-md-12">
+							<input type="hidden" value="0" id="phase2-is-running"/>
+								<button type="button" class="btn btn-success btn-block" id="phase2-run">Run</button>
+						</div>
+
+								
+							</div><!-- END OF PHASE 2 CONTENT  -->
+						</div> <!-- END OF phase 2 tab PANE -->
+	<!----------------------------------------------------------------------------------------------------------------------->
+	<!-------------------------------------------------- END OF PHASE 2 ----------------------------------------------------->
+	<!----------------------------------------------------------------------------------------------------------------------->
+					</div> <!--  End of phase controls inner tab content -->
+			</div> <!-- end of sys-controls-content -->
+			
+			
+	<!----------------------------------------------------------------------------------------------------------------------->
+	<!----------------------------------------------- VOTING DATA CONTENT ------------------------------------------------------>
+	<!----------------------------------------------------------------------------------------------------------------------->			
+			
+			<div class="tab-pane" id="voting-data-content">
+			<div class="container-fluid">
+				<div id="row">
+					<div class="col-12">
+						<h5 style="text-decoration:underline;" id="state-voting-data-text">State Voting Data</h5>
+						<p id="state-republican-votes">Republican Votes: </p>
+						<p id="state-democratic-votes">Democratic Votes: </p>
+						<p id="state-libertarian-votes">Libertarian Votes: </p>
+						<p id="state-green-votes">Green Votes: </p>
+						<p id="state-majority-party">Majority Party: </p>
+					</div>
+					
+					<div class="col-12">
+						<h5 style="text-decoration:underline;" id="district-voting-data-text">District Voting Data</h5>
+						<p id="district-republican-votes">Republican Votes: </p>
+						<p id="district-democratic-votes">Democratic Votes: </p>
+						<p id="district-libertarian-votes">Libertarian Votes: </p>
+						<p id="district-green-votes">Green Votes: </p>
+						<p id="district-majority-party">Majority Party: </p>
+					</div>
+					
+					<div class="col-12">
+						<h5 style="text-decoration:underline;" id="precinct-voting-data-text">Precinct Voting Data</h5>
+						<p id="precinct-republican-votes">Republican Votes: </p>
+						<p id="precinct-democratic-votes">Democratic Votes: </p>
+						<p id="precinct-libertarian-votes">Libertarian Votes: </p>
+						<p id="precinct-green-votes">Green Votes: </p>
+					</div>
+				</div>
+			</div>
+			</div>
+				
+	<!----------------------------------------------------------------------------------------------------------------------->
+	<!--------------------------------------- DEMOGRPAHIC DATA CONTENT ------------------------------------------------------>
+	<!----------------------------------------------------------------------------------------------------------------------->						
+				
+				<div class="tab-pane" id="demographic-data-content">
+					<div class="container-fluid">
+						<div id="row">
+							<div class="col-12">
+							<h5 style="text-decoration:underline;" id="state-demographic-data-text">State Demographic Data</h5>
+								<p id="state-white">White: </p>
+								<p id="state-african-american">African American: </p>
+								<p id="state-hispanic">Hispanic: </p>
+								<p id="state-native-american">Native American: </p>
+								<p id="state-asian">Asian: </p>
+								<p id="state-native-hawaiian">Native Hawaiian: </p>
+								<p id="state-native-alaskan">Native Alaskan: </p>
+								<p id="state-total-population">Total Population: </p>
+							</div>
+							
+							<div class="col-12">
+								<h5 style="text-decoration:underline;" id="district-demographic-data-text">District Demographic Data</h5>
+								
+								<p id="district-white">White: </p>
+								<p id="district-african-american">African American: </p>
+								<p id="district-hispanic">Hispanic: </p>
+								<p id="district-native-american">Native American: </p>
+								<p id="district-asian">Asian: </p>
+								<p id="district-native-hawaiian">Native Hawaiian: </p>
+								<p id="district-native-alaskan">Native Alaskan: </p>
+							</div>
+							
+							<!-- <div class="col-12"> -->
+								<!-- <h5 style="text-decoration:underline;" id="precinct-demographic-data-text">Precinct Demographic Data</h5> -->
+								<!-- <p id="precinct-population">Population: </p> -->
+								<!-- <p id="precinct-white">White: </p> -->
+								<!-- <p id="precinct-african-american">African American: </p> -->
+								<!-- <p id="precinct-hispanic">Hispanic: </p> -->
+								<!-- <p id="precinct-native-american">Native American: </p> -->
+								<!-- <p id="precinct-asian">Asian: </p> -->
+								<!-- <p id="precinct-native-hawaiian">Native Hawaiian: </p> -->
+								<!-- <p id="precinct-native-alaskan">Native Alaskan: </p> -->
+							<!-- </div> -->
+						</div>
+					</div>
+				</div>
+				
+	<!----------------------------------------------------------------------------------------------------------------------->
+	<!------------------------------------------ DATA ANALYSIS CONTENT ------------------------------------------------------>
+	<!----------------------------------------------------------------------------------------------------------------------->	
+				
+	<div class="tab-pane" id="data-analysis-content">
+	<div class ="row" id = "data-analysis-vote">
+	</div>
+	
+	<div class ="row" id = "data-analysis-dem">
+	</div>
+		
+	</div>
+
+	</div>
+	</div>
+	</div>
+	</div>
+	</div>
+	</div>
+	
+	<div class="footer">
+     </br>
+     <center style="color:white">© The Grizzlies, CSE 308 Fall 2019</center>
+     </br>
+    </div>
+	
+<!----------------------------------------------------------------------------------------------------------------------->
+<!--------------------------------------------- End of new User Interface ----------------------------------------------->
+<!----------------------------------------------------------------------------------------------------------------------->
+
+<!-- END OF CONTAINER -->
+<p id="error"></p>
+ <!-- Optional JavaScript -->
+ <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="/js/phasecontrollers.js"></script>
+    <script src="/js/mainmenucontroller.js"></script>
+    <script src="/js/electionselect.js"></script>
+    <script src="/js/stateselect.js"></script>
+    <script src="/js/slider.js"></script>
+    <script src="js/graph.js"></script>
+    <script src="js/demographicdataupdate.js"></script>
+    <script src="js/votingdataupdate.js"></script>
+    <script src="js/table.js"></script>
+  </body>
+</html>

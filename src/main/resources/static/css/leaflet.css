@@ -1,0 +1,9 @@
+
+/* Map */
+#map {
+	width: 100%;
+	height: 790px;
+	position: absolute;
+    top: 0;
+    left: 0;
+}
